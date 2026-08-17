@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { experienceConfig } from "@/config/experience";
 import { Button } from "@/components/ui/Button";
+import { GoldRain } from "@/components/ui/GoldRain";
 
 const containerVariants = {
   hidden: {},
@@ -17,27 +17,10 @@ const lineVariants = {
 
 export function CompletionScreen({ onRestart }: { onRestart: () => void }) {
   const { completion } = experienceConfig;
-  const particles = useMemo(() => generateParticles(16), []);
 
   return (
     <main className="relative flex h-screen-safe w-full flex-col items-center justify-center overflow-hidden bg-cream-50 px-6 safe-top safe-bottom">
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {particles.map((p) => (
-          <span
-            key={p.id}
-            className="animate-gentle-fall absolute block rounded-full"
-            style={{
-              left: `${p.left}%`,
-              top: "-4%",
-              width: p.size,
-              height: p.size,
-              backgroundColor: p.color,
-              animationDuration: `${p.duration}s`,
-              animationDelay: `${p.delay}s`,
-            }}
-          />
-        ))}
-      </div>
+      <GoldRain />
 
       <motion.div
         variants={containerVariants}
@@ -71,25 +54,4 @@ export function CompletionScreen({ onRestart }: { onRestart: () => void }) {
       </motion.div>
     </main>
   );
-}
-
-interface Particle {
-  id: number;
-  left: number;
-  size: number;
-  duration: number;
-  delay: number;
-  color: string;
-}
-
-function generateParticles(count: number): Particle[] {
-  const colors = ["#c9a667", "#e3cf9c", "#fdfbf7"];
-  return Array.from({ length: count }, (_, id) => ({
-    id,
-    left: Math.random() * 100,
-    size: 4 + Math.random() * 6,
-    duration: 5 + Math.random() * 4,
-    delay: Math.random() * 3,
-    color: colors[id % colors.length],
-  }));
 }

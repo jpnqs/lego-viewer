@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { experienceConfig } from "@/config/experience";
-import { GoldRain } from "@/components/intro/GoldRain";
+import { GoldRain } from "@/components/ui/GoldRain";
 
 const containerVariants = {
   hidden: {},

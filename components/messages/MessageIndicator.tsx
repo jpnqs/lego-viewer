@@ -6,17 +6,7 @@ import { HeartIcon } from "@/components/ui/HeartIcon";
 export function MessageIndicator({ onClick }: { onClick: () => void }) {
   return (
     <div className="pointer-events-none absolute bottom-4 right-4 z-10 sm:bottom-6 sm:right-6">
-      <motion.span
-        aria-hidden
-        className="absolute inset-0 rounded-full bg-gold-400"
-        animate={{ opacity: [0.45, 0, 0], scale: [1, 1.9, 1.9] }}
-        transition={{
-          duration: 2.2,
-          repeat: Infinity,
-          ease: "easeOut",
-          times: [0, 0.6, 1],
-        }}
-      />
+      <span aria-hidden className="animate-gold-ping absolute inset-0 rounded-full bg-gold-400" />
       <motion.button
         type="button"
         onClick={onClick}
