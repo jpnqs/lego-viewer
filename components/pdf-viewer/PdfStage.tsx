@@ -72,20 +72,6 @@ export function PdfStage({
   const widthFromHeight = isSideways ? availableHeight / aspectRatio : availableHeight * aspectRatio;
   const baseWidth = Math.min(availableWidth, widthFromHeight || availableWidth, MAX_PAGE_WIDTH) || availableWidth;
   const pageWidth = Math.max(baseWidth * zoom, 1);
-  if (typeof window !== "undefined") {
-    console.log("DEBUG_PDF_SIZE", {
-      rotation,
-      isSideways,
-      aspectRatio,
-      sizeWidth: size.width,
-      sizeHeight: size.height,
-      availableWidth,
-      availableHeight,
-      widthFromHeight,
-      baseWidth,
-      pageWidth,
-    });
-  }
 
   const isZoomed = zoom > DEFAULT_ZOOM + 0.001;
 

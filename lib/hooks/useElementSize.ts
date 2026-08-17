@@ -9,12 +9,17 @@ export function useElementSize<T extends HTMLElement>(): [RefObject<T | null>, {
 
   useEffect(() => {
     const el = ref.current;
-    console.log("DEBUG_USE_ELEMENT_SIZE mount", { hasEl: !!el });
     if (!el) return;
+
+    // Seed the real size immediately: ResizeObserver is spec'd to fire once
+    // on observe(), but don't leave layout dependent on that promise alone —
+    // reading the rect synchronously here means callers never see a
+    // momentary {0,0} that could feed into a size calculation.
+    const rect = el.getBoundingClientRect();
+    setSize({ width: rect.width, height: rect.height });
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      console.log("DEBUG_USE_ELEMENT_SIZE callback", { hasEntry: !!entry, contentRect: entry?.contentRect });
       if (!entry) return;
       const { width, height } = entry.contentRect;
       setSize({ width, height });
