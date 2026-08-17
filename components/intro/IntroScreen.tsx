@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { experienceConfig } from "@/config/experience";
+import { GoldRain } from "@/components/intro/GoldRain";
 
 const containerVariants = {
   hidden: {},
@@ -22,6 +23,7 @@ export function IntroScreen() {
   return (
     <main className="relative flex h-screen-safe w-full flex-col items-center justify-center overflow-hidden bg-cream-50 px-6 safe-top safe-bottom">
       <BackgroundOrnament />
+      <GoldRain />
 
       <motion.div
         variants={containerVariants}
@@ -72,12 +74,18 @@ export function IntroScreen() {
             className="group inline-flex h-14 items-center gap-3 rounded-full bg-anthracite-900 px-9 font-sans text-base font-medium tracking-wide text-cream-50 shadow-sm transition-all duration-300 ease-out hover:bg-anthracite-800 hover:shadow-md hover:shadow-anthracite-900/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-600"
           >
             {intro.cta}
-            <span
+            <svg
               aria-hidden
-              className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-1"
+              viewBox="0 0 24 24"
+              className="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              &rarr;
-            </span>
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
           </Link>
         </motion.div>
       </motion.div>
@@ -90,16 +98,6 @@ function BackgroundOrnament() {
     <div aria-hidden className="pointer-events-none absolute inset-0">
       <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-gold-300/20 blur-3xl" />
       <div className="absolute -bottom-32 -right-16 h-80 w-80 rounded-full bg-gold-300/15 blur-3xl" />
-      <svg
-        className="absolute left-1/2 top-10 h-6 w-6 -translate-x-1/2 text-gold-400/70"
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <rect x="4" y="10" width="16" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-        <circle cx="8" cy="7" r="1.6" fill="currentColor" />
-        <circle cx="12" cy="7" r="1.6" fill="currentColor" />
-        <circle cx="16" cy="7" r="1.6" fill="currentColor" />
-      </svg>
     </div>
   );
 }

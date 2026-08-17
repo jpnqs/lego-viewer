@@ -140,3 +140,26 @@ body {
   animation-timing-function: ease-in;
   animation-iteration-count: 1;
 }
+
+@keyframes gold-rain-fall {
+  0% {
+    transform: translateY(-10vh);
+    opacity: 0;
+  }
+  15% {
+    opacity: var(--gold-rain-opacity, 0.35);
+  }
+  85% {
+    opacity: var(--gold-rain-opacity, 0.35);
+  }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
+.animate-gold-rain-fall {
+  animation-name: gold-rain-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
