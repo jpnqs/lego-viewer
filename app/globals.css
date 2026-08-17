@@ -42,20 +42,36 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body {
+  height: 100%;
+  /* The page itself must never scroll — mobile Safari resolves 100% / 100vh
+     on <html> against the "large" viewport (address bar hidden), which is
+     taller than what's actually visible while the bar is shown. If the body
+     were scrollable, that mismatch surfaces as needing a scroll once before
+     the top/bottom toolbars come into view. Keeping this non-scrollable and
+     sizing the app shell with 100svh below avoids that entirely. */
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans-wedding);
 }
 
-@supports (height: 100dvh) {
-  .h-screen-safe {
-    height: 100dvh;
-  }
-}
-
 .h-screen-safe {
   height: 100vh;
+}
+
+@supports (height: 100svh) {
+  .h-screen-safe {
+    /* Small viewport height: always sized to fit even when mobile browser
+       chrome (address bar, tab bar) is fully expanded, so the layout never
+       exceeds the visible area and never requires scrolling to reveal it. */
+    height: 100svh;
+  }
 }
 
 .safe-top {

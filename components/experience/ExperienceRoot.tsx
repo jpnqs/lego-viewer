@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { experienceConfig } from "@/config/experience";
 import { useExperienceState } from "@/lib/hooks/useExperienceState";
-import { useFullscreen } from "@/lib/hooks/useFullscreen";
 import { getMessageForPage, pageHasMessage } from "@/lib/messages";
 import { TopToolbar } from "@/components/navigation/TopToolbar";
 import { BottomNav } from "@/components/navigation/BottomNav";
@@ -28,8 +27,6 @@ const PdfViewer = dynamic(
 
 export function ExperienceRoot() {
   const state = useExperienceState();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fullscreen = useFullscreen(containerRef);
 
   useEffect(() => {
     if (state.viewState !== "active") return;
@@ -45,14 +42,12 @@ export function ExperienceRoot() {
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         state.next();
-      } else if (e.key === "Escape" && fullscreen.isFullscreen) {
-        void fullscreen.exit();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [state, fullscreen]);
+  }, [state]);
 
   if (state.viewState === "checking") {
     return <div className="h-screen-safe w-full bg-cream-50" />;
@@ -77,17 +72,15 @@ export function ExperienceRoot() {
   const showChrome = state.totalPages !== null && !state.loadError;
 
   return (
-    <div ref={containerRef} className="flex h-screen-safe w-full flex-col overflow-hidden bg-cream-50">
+    <div className="flex h-screen-safe w-full flex-col overflow-hidden bg-cream-50">
       {showChrome && (
         <TopToolbar
           zoom={state.zoom}
           rotation={state.rotation}
-          isFullscreen={fullscreen.isFullscreen}
           onZoomIn={state.zoomIn}
           onZoomOut={state.zoomOut}
           onZoomReset={state.resetZoom}
           onRotate={state.rotateClockwise}
-          onToggleFullscreen={fullscreen.toggle}
         />
       )}
 

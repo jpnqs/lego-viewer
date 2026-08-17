@@ -6,23 +6,19 @@ import { MAX_ZOOM, MIN_ZOOM } from "@/config/experience";
 interface TopToolbarProps {
   zoom: number;
   rotation: number;
-  isFullscreen: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onZoomReset: () => void;
   onRotate: () => void;
-  onToggleFullscreen: () => void;
 }
 
 export function TopToolbar({
   zoom,
   rotation,
-  isFullscreen,
   onZoomIn,
   onZoomOut,
   onZoomReset,
   onRotate,
-  onToggleFullscreen,
 }: TopToolbarProps) {
   return (
     <header className="relative z-10 flex-none border-b border-anthracite-900/10 bg-cream-50/95 backdrop-blur safe-top safe-left safe-right">
@@ -60,12 +56,6 @@ export function TopToolbar({
           </ToolbarIconButton>
           <ToolbarIconButton label={`Seite drehen (aktuell ${rotation}°)`} onClick={onRotate}>
             <RotateIcon />
-          </ToolbarIconButton>
-          <ToolbarIconButton
-            label={isFullscreen ? "Vollbild verlassen" : "Vollbild"}
-            onClick={onToggleFullscreen}
-          >
-            {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
           </ToolbarIconButton>
         </div>
       </div>
@@ -134,18 +124,3 @@ function RotateIcon() {
   );
 }
 
-function FullscreenIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
-    </svg>
-  );
-}
-
-function ExitFullscreenIcon() {
-  return (
-    <svg {...iconProps}>
-      <path d="M9 3v3a2 2 0 0 1-2 2H4M15 3v3a2 2 0 0 0 2 2h3M9 21v-3a2 2 0 0 0-2-2H4M15 21v-3a2 2 0 0 1 2-2h3" />
-    </svg>
-  );
-}
