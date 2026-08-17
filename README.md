@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Für Milena & Hannes – digitale Bauanleitung
 
-## Getting Started
+Eine persönliche, interaktive Web-Experience, die eine LEGO-Bauanleitung als digitales Hochzeitsgeschenk präsentiert – inklusive persönlicher Nachrichten an bestimmten Seiten.
 
-First, run the development server:
+## Setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Öffne [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Eigene Inhalte einsetzen
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Alles Persönliche ist zentral in [`config/experience.ts`](config/experience.ts) konfiguriert:
 
-## Learn More
+- **Namen, Intro-Texte, Hochzeitsdatum** – `couple`, `intro`
+- **Die echte Bauanleitung** – ersetze [`public/instructions.pdf`](public/instructions.pdf) durch die echte PDF-Datei (Dateiname beibehalten, oder Pfad in `pdf.file` anpassen). Aktuell liegt dort ein 24-seitiges Platzhalter-Dokument.
+- **Persönliche Nachrichten** – Einträge im `messages`-Array, je mit `page`, `type` (`letter` | `short` | `photo` | `surprise`), `title`, `text` und optional `autoOpen`.
+- **Abschlusstext** – `completion`.
 
-To learn more about Next.js, take a look at the following resources:
+Die Seitenzahl der Nachrichten muss zur tatsächlichen PDF passen – prüfe das nach dem Austauschen der PDF.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architektur
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/                  Routen: "/" (Intro) und "/bauen" (Anleitung, ?page=N)
+components/
+  intro/               Intro-Screen
+  pdf-viewer/          react-pdf-Integration, Zoom, Seitenwechsel-Animation
+  navigation/          Toolbar, Bottom-Nav, Seitenzähler, Fortschrittsbalken
+  messages/            Nachrichten-Indikator, Modal/Bottom-Sheet, Auto-Open-Toast
+  completion/          Abschluss-Experience
+  experience/          Orchestriert den Gesamtzustand
+  ui/                  Wiederverwendbare UI-Bausteine
+config/experience.ts   Zentrale Konfiguration aller persönlichen Inhalte
+lib/                   Hooks, Types, localStorage-Persistenz
+```
 
-## Deploy on Vercel
+Der Fortschritt (aktuelle Seite, Zoom, bereits gesehene Nachrichten) wird in `localStorage` gespeichert; beim erneuten Besuch wird "Weiterbauen" angeboten.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Kein Backend, kein Tracking – alle Inhalte sind statisch im Projekt.
