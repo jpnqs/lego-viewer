@@ -22,6 +22,24 @@ Alles Persönliche ist zentral in [`config/experience.ts`](config/experience.ts)
 
 Die Seitenzahl der Nachrichten muss zur tatsächlichen PDF passen – prüfe das nach dem Austauschen der PDF.
 
+### Fotos in Nachrichten (`type: "photo"`)
+
+1. Foto-Datei nach [`public/images/`](public/images/) legen (beliebiges Seitenverhältnis, wird nicht zugeschnitten).
+2. Nachricht mit `type: "photo"` anlegen und `photoSrc` auf den Pfad setzen, z. B.:
+
+   ```ts
+   {
+     page: 18,
+     type: "photo",
+     title: "Ein Blick zurück",
+     text: "Kurzer Begleittext zum Foto.",
+     photoSrc: "/images/euer-foto.jpg",
+     photoAlt: "Kurze Beschreibung für Screenreader",
+   }
+   ```
+
+Aktuell liegt unter `public/images/example-photo.svg` ein Platzhalter (Seite 18) – einfach durch ein eigenes Foto ersetzen und `photoSrc`/`photoAlt` entsprechend anpassen.
+
 ## Architektur
 
 ```

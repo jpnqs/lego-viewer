@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#f6f0e6"/>
+  <rect x="24" y="24" width="1152" height="752" fill="none" stroke="#c9a667" stroke-width="2"/>
+  <path fill="#c9a667" transform="translate(560 330) scale(3.4)" d="M12 20.6 10.55 19.3C5.4 14.66 2 11.6 2 7.9 2 4.86 4.42 2.5 7.5 2.5c1.74 0 3.41.8 4.5 2.06A6.02 6.02 0 0 1 16.5 2.5C19.58 2.5 22 4.86 22 7.9c0 3.7-3.4 6.76-8.55 11.42L12 20.6Z"/>
+  <text x="600" y="560" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="34" fill="#3a3733">Platzhalter-Foto</text>
+  <text x="600" y="604" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#5c5850">Ersetze diese Datei unter public/images/</text>
+</svg>

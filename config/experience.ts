@@ -51,6 +51,14 @@ export const experienceConfig: ExperienceConfig = {
       text: "Kurz durchatmen, euch anlächeln – und weiter geht's.",
       autoOpen: true,
     },
+    {
+      page: 18,
+      type: "photo",
+      title: "Ein Blick zurück",
+      text: "Ersetze dieses Bild gern durch ein eigenes Foto von euch beiden.",
+      photoSrc: "/images/example-photo.svg",
+      photoAlt: "Platzhalter-Foto",
+    },
   ],
 };
 

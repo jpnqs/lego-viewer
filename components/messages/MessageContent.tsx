@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { ExperienceMessage } from "@/lib/types";
 import { experienceConfig } from "@/config/experience";
 import { HeartIcon } from "@/components/ui/HeartIcon";
@@ -19,12 +18,15 @@ export function MessageContent({ message }: { message: ExperienceMessage }) {
         <div className="flex flex-col gap-5">
           {message.photoSrc && (
             <div className="overflow-hidden rounded-md bg-cream-200">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element --
+                  Photos are user-supplied local files of unknown, varying
+                  dimensions. A plain <img> shows their real aspect ratio;
+                  next/image would require a fixed width/height guess that
+                  risks stretching or cropping the actual photo. */}
+              <img
                 src={message.photoSrc}
                 alt={message.photoAlt ?? ""}
-                width={800}
-                height={600}
-                className="h-auto w-full object-cover"
+                className="h-auto w-full"
               />
             </div>
           )}
