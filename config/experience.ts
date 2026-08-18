@@ -34,7 +34,7 @@ export const experienceConfig: ExperienceConfig = {
   },
 
   tutorialHint:
-    "Auf manchen Seiten warten persönliche Nachrichten von Jonas – ihr erkennt sie am pulsierenden Herz.",
+    "Auf manchen Seiten warten Nachrichten auf euch. Ihr erkennt sie am pulsierenden Herz!",
 
   messages: [
     {
@@ -45,10 +45,16 @@ export const experienceConfig: ExperienceConfig = {
       autoOpen: true,
     },
     {
+      page: 4,
+      type: "surprise",
+      title: 'Surprise',
+      text: 'test'
+    },
+    {
       page: 12,
       type: "short",
       title: "Kleine Baupause",
-      text: "Kurz durchatmen, euch anlächeln – und weiter geht's.",
+      text: "Kurz durchatmen, euch anlächeln - und weiter geht's.",
       autoOpen: true,
     },
     {
