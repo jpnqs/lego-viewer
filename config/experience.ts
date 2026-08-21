@@ -74,3 +74,4 @@ export const MIN_ZOOM = 0.6;
 export const MAX_ZOOM = 2.5;
 export const DEFAULT_ZOOM = 1;
 export const ZOOM_STEP = 0.2;
+export const PDF_WORKER_SRC = "/pdf.worker.min.mjs";

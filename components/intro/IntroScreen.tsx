@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { experienceConfig } from "@/config/experience";
+import { experienceConfig, PDF_WORKER_SRC } from "@/config/experience";
 import { GoldRain } from "@/components/ui/GoldRain";
 
 const containerVariants = {
@@ -19,6 +20,14 @@ const itemVariants = {
 
 export function IntroScreen() {
   const { intro, couple } = experienceConfig;
+
+  // Warm the browser's HTTP cache for the (often large) PDF and its worker
+  // script while the visitor is still reading the intro, so the actual
+  // fetch inside the viewer hits cache instead of starting from zero.
+  useEffect(() => {
+    fetch(experienceConfig.pdf.file).catch(() => {});
+    fetch(PDF_WORKER_SRC).catch(() => {});
+  }, []);
 
   return (
     <main className="relative flex h-screen-safe w-full flex-col items-center justify-center overflow-hidden bg-cream-50 px-6 safe-top safe-bottom">
