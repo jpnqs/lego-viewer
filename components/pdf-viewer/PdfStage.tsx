@@ -2,10 +2,11 @@
 
 import "@/lib/pdfWorker";
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Document, Page } from "react-pdf";
 import { useElementSize } from "@/lib/hooks/useElementSize";
 import { useSwipe } from "@/lib/hooks/useSwipe";
+import { scheduleIdle } from "@/lib/scheduleIdle";
 import { DEFAULT_ZOOM } from "@/config/experience";
 import { Loader } from "@/components/ui/Loader";
 
@@ -18,17 +19,17 @@ const DEFAULT_ASPECT_RATIO = 1 / Math.SQRT2; // A4 portrait, width / height
 // sharpness gain that's invisible at this page size — capping it keeps pages
 // crisp while cutting render time substantially on high-DPI devices.
 const MAX_DEVICE_PIXEL_RATIO = 2;
-// The server serves the PDF with byte-range support, so pdf.js fetches only
-// the bytes a requested page actually needs rather than the whole file.
-// Warming several pages ahead (readers mostly go forward) means those range
-// requests already happened by the time "Weiter" is tapped.
-const FORWARD_PRELOAD_PAGES = 3;
-const BACKWARD_PRELOAD_PAGES = 1;
-const PRELOAD_DELAY_MS = 200;
+// The server serves the PDF with byte-range support, so mounting a page only
+// fetches the bytes it actually needs. Readers mostly go forward, so we
+// actually pre-render (fetch + decode + paint) a couple of pages ahead, and
+// keep the last one cached, instead of only warming the network.
+const FORWARD_PRERENDER_PAGES = 2;
+const BACKWARD_CACHE_PAGES = 1;
+const MAX_POOL_DISTANCE = Math.max(FORWARD_PRERENDER_PAGES, BACKWARD_CACHE_PAGES);
+const SLIDE_DISTANCE = 24;
 
 interface PdfProxy {
   numPages: number;
-  getPage: (pageNumber: number) => Promise<unknown>;
 }
 
 interface PdfStageProps {
@@ -56,18 +57,12 @@ export function PdfStage({
 }: PdfStageProps) {
   const [containerRef, size] = useElementSize<HTMLDivElement>();
   const [aspectRatio, setAspectRatio] = useState(DEFAULT_ASPECT_RATIO);
-  const [prevPage, setPrevPage] = useState(pageNumber);
-  const [direction, setDirection] = useState(0);
   const [pdfProxy, setPdfProxy] = useState<PdfProxy | null>(null);
+  const [mountedPages, setMountedPages] = useState<Set<number>>(() => new Set([pageNumber]));
   const devicePixelRatio = Math.min(
     typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
     MAX_DEVICE_PIXEL_RATIO,
   );
-
-  if (pageNumber !== prevPage) {
-    setDirection(pageNumber > prevPage ? 1 : -1);
-    setPrevPage(pageNumber);
-  }
 
   const swipeHandlers = useSwipe(onSwipeNext, onSwipePrev, zoom === DEFAULT_ZOOM);
 
@@ -79,32 +74,52 @@ export function PdfStage({
     [onLoadSuccess],
   );
 
-  // Warm pdf.js's cache for upcoming pages while the current one is being
-  // viewed, so paging forward doesn't pay for fetching/parsing that page
-  // from scratch — it's already resolved by the time react-pdf asks for it.
-  // Delayed slightly so the current page's own fetch always wins the race
-  // for bandwidth, and cancelled on rapid navigation to avoid warming
-  // targets that are already stale.
+  // The current page is always mounted immediately, full priority. Pages
+  // that have drifted out of the retention window get dropped to bound
+  // memory/canvas count.
+  useEffect(() => {
+    setMountedPages((prev) => {
+      const next = new Set<number>();
+      for (const page of prev) {
+        if (Math.abs(page - pageNumber) <= MAX_POOL_DISTANCE) next.add(page);
+      }
+      next.add(pageNumber);
+      return next;
+    });
+  }, [pageNumber]);
+
+  // Actually pre-render (not just fetch) the next couple of pages, plus keep
+  // the previous one cached, during browser idle time — so paging forward
+  // shows an already-painted canvas instead of decoding one from scratch.
+  // Idle-scheduled so it never competes with the current page's own render
+  // or with touch/scroll handling, and cancelled on rapid navigation so we
+  // don't warm targets that are already stale.
   useEffect(() => {
     if (!pdfProxy) return;
 
     const targets: number[] = [];
-    for (let offset = 1; offset <= FORWARD_PRELOAD_PAGES; offset++) {
+    for (let offset = 1; offset <= FORWARD_PRERENDER_PAGES; offset++) {
       targets.push(pageNumber + offset);
     }
-    for (let offset = 1; offset <= BACKWARD_PRELOAD_PAGES; offset++) {
+    for (let offset = 1; offset <= BACKWARD_CACHE_PAGES; offset++) {
       targets.push(pageNumber - offset);
     }
+    const validTargets = targets.filter((page) => page >= 1 && page <= pdfProxy.numPages);
+    if (validTargets.length === 0) return;
 
-    const timer = setTimeout(() => {
-      for (const target of targets) {
-        if (target >= 1 && target <= pdfProxy.numPages) {
-          pdfProxy.getPage(target).catch(() => {});
+    return scheduleIdle(() => {
+      setMountedPages((prev) => {
+        const next = new Set(prev);
+        let changed = false;
+        for (const target of validTargets) {
+          if (!next.has(target)) {
+            next.add(target);
+            changed = true;
+          }
         }
-      }
-    }, PRELOAD_DELAY_MS);
-
-    return () => clearTimeout(timer);
+        return changed ? next : prev;
+      });
+    });
   }, [pageNumber, pdfProxy]);
 
   const handlePageLoadSuccess = useCallback((page: { originalWidth: number; originalHeight: number }) => {
@@ -118,6 +133,25 @@ export function PdfStage({
       });
     }
   }, []);
+
+  // A background pre-render failing shouldn't block the whole viewer — drop
+  // it so a fresh attempt happens if the reader actually reaches that page.
+  // A failure on the page currently being looked at is the real error.
+  const handlePageLoadError = useCallback(
+    (page: number) => {
+      if (page === pageNumber) {
+        onPageError();
+        return;
+      }
+      setMountedPages((prev) => {
+        if (!prev.has(page)) return prev;
+        const next = new Set(prev);
+        next.delete(page);
+        return next;
+      });
+    },
+    [pageNumber, onPageError],
+  );
 
   // react-pdf's `width` prop always maps to the rendered canvas width, but
   // when rotated 90/270 the page's displayed shape is height×width swapped —
@@ -151,35 +185,40 @@ export function PdfStage({
           onLoadError={onLoadError}
           loading={<Loader label="Eure Bauanleitung wird vorbereitet …" />}
           error={null}
-          className="flex items-center justify-center"
         >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={pageNumber}
-              initial={{ opacity: 0, x: direction * 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction * -24 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden rounded-sm bg-white shadow-[0_8px_30px_rgba(33,31,29,0.12)]"
-            >
-              <Page
-                pageNumber={pageNumber}
-                width={pageWidth}
-                rotate={rotation}
-                devicePixelRatio={devicePixelRatio}
-                onLoadSuccess={handlePageLoadSuccess}
-                onLoadError={onPageError}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                loading={
-                  <div
-                    style={{ width: pageWidth, aspectRatio: displayAspectRatio }}
-                    className="animate-pulse bg-cream-200"
+          <div className="relative" style={{ width: pageWidth, aspectRatio: displayAspectRatio }}>
+            {Array.from(mountedPages).map((page) => {
+              const isActive = page === pageNumber;
+              const offset = isActive ? 0 : page > pageNumber ? SLIDE_DISTANCE : -SLIDE_DISTANCE;
+              return (
+                <motion.div
+                  key={page}
+                  initial={false}
+                  animate={{ opacity: isActive ? 1 : 0, x: offset }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ zIndex: isActive ? 1 : 0, pointerEvents: isActive ? "auto" : "none" }}
+                  className="absolute inset-0 overflow-hidden rounded-sm bg-white shadow-[0_8px_30px_rgba(33,31,29,0.12)]"
+                >
+                  <Page
+                    pageNumber={page}
+                    width={pageWidth}
+                    rotate={rotation}
+                    devicePixelRatio={devicePixelRatio}
+                    onLoadSuccess={handlePageLoadSuccess}
+                    onLoadError={() => handlePageLoadError(page)}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    loading={
+                      <div
+                        style={{ width: pageWidth, aspectRatio: displayAspectRatio }}
+                        className="animate-pulse bg-cream-200"
+                      />
+                    }
                   />
-                }
-              />
-            </motion.div>
-          </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
         </Document>
       </div>
     </div>
