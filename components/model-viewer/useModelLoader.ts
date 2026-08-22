@@ -8,9 +8,9 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 // exact same react-three-fiber loader cache entry (keyed by loader + url,
 // not by this extend callback).
 export function useModelLoader(objFile: string, mtlFile: string) {
-  const materials = useLoader(MTLLoader, mtlFile);
-  return useLoader(OBJLoader, objFile, (loader) => {
-    materials.preload();
-    loader.setMaterials(materials);
-  });
+    const materials = useLoader(MTLLoader, mtlFile);
+    return useLoader(OBJLoader, objFile, (loader) => {
+        materials.preload();
+        loader.setMaterials(materials);
+    });
 }
