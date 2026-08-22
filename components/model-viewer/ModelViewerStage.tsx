@@ -4,6 +4,7 @@ import { Component, Suspense } from "react";
 import type { ReactNode } from "react";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { Bounds, Environment, OrbitControls } from "@react-three/drei";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { Loader } from "@/components/ui/Loader";
@@ -58,16 +59,26 @@ export function ModelViewerStage({ objFile, mtlFile }: ModelViewerStageProps) {
       }
     >
       <Suspense fallback={<Loader label="Das Modell wird geladen …" />}>
-        <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+        {/* Camera direction (not distance) sets the initial viewing angle — Bounds only moves it closer/farther along this line; target is recomputed to the bounding-box center regardless. */}
+        <Canvas camera={{ position: [497.18, 444.93, -853.36], fov: 45 }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 8, 5]} intensity={1.2} />
           <Environment preset="studio" />
           <LoadedModel objFile={objFile} mtlFile={mtlFile} />
           <OrbitControls
             makeDefault
-            enablePan={false}
             minDistance={1}
             maxDistance={20}
+            // TEMP: logs camera position/target on every drag release so a good initial angle can be picked, then removed.
+            onEnd={(e) => {
+              const controls = e?.target as OrbitControlsImpl | undefined;
+              if (!controls) return;
+              console.log(
+                "camera position:",
+                controls.object.position.toArray(),
+              );
+              console.log("camera target:", controls.target.toArray());
+            }}
           />
         </Canvas>
       </Suspense>
