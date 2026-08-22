@@ -11,7 +11,12 @@ interface ModelViewerModalProps {
   mtlFile: string;
 }
 
-export function ModelViewerModal({ open, onClose, objFile, mtlFile }: ModelViewerModalProps) {
+export function ModelViewerModal({
+  open,
+  onClose,
+  objFile,
+  mtlFile,
+}: ModelViewerModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 

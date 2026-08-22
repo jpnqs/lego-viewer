@@ -63,7 +63,12 @@ export function ModelViewerStage({ objFile, mtlFile }: ModelViewerStageProps) {
           <directionalLight position={[5, 8, 5]} intensity={1.2} />
           <Environment preset="studio" />
           <LoadedModel objFile={objFile} mtlFile={mtlFile} />
-          <OrbitControls makeDefault enablePan={false} minDistance={1} maxDistance={20} />
+          <OrbitControls
+            makeDefault
+            enablePan={false}
+            minDistance={1}
+            maxDistance={20}
+          />
         </Canvas>
       </Suspense>
     </ModelErrorBoundary>

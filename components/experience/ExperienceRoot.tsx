@@ -19,7 +19,10 @@ import { Loader } from "@/components/ui/Loader";
 // three.js touches WebGL/canvas globals at module-evaluation time — like
 // react-pdf, it must never be part of the server bundle.
 const ModelViewerModal = dynamic(
-  () => import("@/components/model-viewer/ModelViewerModal").then((m) => m.ModelViewerModal),
+  () =>
+    import("@/components/model-viewer/ModelViewerModal").then(
+      (m) => m.ModelViewerModal,
+    ),
   { ssr: false },
 );
 
@@ -76,7 +79,9 @@ export function ExperienceRoot() {
   }
 
   const currentMessage =
-    state.openMessagePage !== null ? getMessageForPage(state.openMessagePage) ?? null : null;
+    state.openMessagePage !== null
+      ? (getMessageForPage(state.openMessagePage) ?? null)
+      : null;
   const showChrome = state.totalPages !== null && !state.loadError;
 
   return (
@@ -93,7 +98,9 @@ export function ExperienceRoot() {
       )}
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {showChrome && <AutoOpenToast visible={state.pendingAutoOpenPage !== null} />}
+        {showChrome && (
+          <AutoOpenToast visible={state.pendingAutoOpenPage !== null} />
+        )}
         <PdfViewer
           file={experienceConfig.pdf.file}
           pageNumber={state.currentPage}
@@ -107,10 +114,15 @@ export function ExperienceRoot() {
           onSwipePrev={state.prev}
         />
         {showChrome && pageHasMessage(state.currentPage) && (
-          <MessageIndicator onClick={() => state.openMessage(state.currentPage)} />
+          <MessageIndicator
+            onClick={() => state.openMessage(state.currentPage)}
+          />
         )}
         {showChrome && !pageHasMessage(state.currentPage) && (
-          <TutorialHint visible={state.showTutorialHint} onDismiss={state.dismissTutorialHint} />
+          <TutorialHint
+            visible={state.showTutorialHint}
+            onDismiss={state.dismissTutorialHint}
+          />
         )}
         {showChrome && <ModelIndicator onClick={state.open3DViewer} />}
       </div>
