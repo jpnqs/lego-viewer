@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { experienceConfig } from "@/config/experience";
 import { useExperienceState } from "@/lib/hooks/useExperienceState";
 import { getMessageForPage, pageHasMessage } from "@/lib/messages";
+import { scheduleIdle } from "@/lib/scheduleIdle";
 import { TopToolbar } from "@/components/navigation/TopToolbar";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { MessageModal } from "@/components/messages/MessageModal";
@@ -26,6 +27,14 @@ const ModelViewerModal = dynamic(
   { ssr: false },
 );
 
+const ModelPreloader = dynamic(
+  () =>
+    import("@/components/model-viewer/ModelPreloader").then(
+      (m) => m.ModelPreloader,
+    ),
+  { ssr: false },
+);
+
 // react-pdf pulls in pdfjs-dist, which touches browser-only globals (DOMMatrix)
 // at module-evaluation time — it must never be part of the server bundle.
 const PdfViewer = dynamic(
@@ -38,6 +47,14 @@ const PdfViewer = dynamic(
 
 export function ExperienceRoot() {
   const state = useExperienceState();
+  const [preloadModel, setPreloadModel] = useState(false);
+
+  // Warm the 3D model's loader cache once while the visitor is busy reading
+  // instructions, so opening the viewer later doesn't wait on a 36MB fetch/parse.
+  useEffect(() => {
+    if (state.viewState !== "active") return;
+    return scheduleIdle(() => setPreloadModel(true));
+  }, [state.viewState]);
 
   useEffect(() => {
     if (state.viewState !== "active") return;
@@ -144,6 +161,12 @@ export function ExperienceRoot() {
         objFile={experienceConfig.model.objFile}
         mtlFile={experienceConfig.model.mtlFile}
       />
+      {preloadModel && (
+        <ModelPreloader
+          objFile={experienceConfig.model.objFile}
+          mtlFile={experienceConfig.model.mtlFile}
+        />
+      )}
     </div>
   );
 }

@@ -2,13 +2,12 @@
 
 import { Component, Suspense } from "react";
 import type { ReactNode } from "react";
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Bounds, Environment, OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { Loader } from "@/components/ui/Loader";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { useModelLoader } from "@/components/model-viewer/useModelLoader";
 
 interface ModelViewerStageProps {
   objFile: string;
@@ -16,11 +15,7 @@ interface ModelViewerStageProps {
 }
 
 function LoadedModel({ objFile, mtlFile }: ModelViewerStageProps) {
-  const materials = useLoader(MTLLoader, mtlFile);
-  const obj = useLoader(OBJLoader, objFile, (loader) => {
-    materials.preload();
-    loader.setMaterials(materials);
-  });
+  const obj = useModelLoader(objFile, mtlFile);
 
   // Model coordinates come from a BrickLink Studio export (raw LDU scale),
   // so we let Bounds compute the fit instead of assuming a fixed size.
@@ -63,7 +58,8 @@ export function ModelViewerStage({ objFile, mtlFile }: ModelViewerStageProps) {
         <Canvas camera={{ position: [497.18, 444.93, -853.36], fov: 45 }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 8, 5]} intensity={1.2} />
-          <Environment preset="studio" />
+          {/* Self-hosted so the viewer never depends on drei's default GitHub-hosted preset CDN. */}
+          <Environment files="/hdri/studio_small_03_1k.hdr" />
           <LoadedModel objFile={objFile} mtlFile={mtlFile} />
           <OrbitControls
             makeDefault
