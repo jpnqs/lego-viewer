@@ -39,6 +39,7 @@ export function useExperienceState() {
   const [savedPageForPrompt, setSavedPageForPrompt] = useState<number | null>(null);
   const [tutorialDismissed, setTutorialDismissed] = useState(false);
   const [prevPageForTutorial, setPrevPageForTutorial] = useState(currentPage);
+  const [show3DViewer, setShow3DViewer] = useState(false);
 
   const hasHydrated = useRef(false);
 
@@ -152,6 +153,9 @@ export function useExperienceState() {
 
   const closeMessage = useCallback(() => setOpenMessagePage(null), []);
 
+  const open3DViewer = useCallback(() => setShow3DViewer(true), []);
+  const close3DViewer = useCallback(() => setShow3DViewer(false), []);
+
   // Reset the dismissal whenever the visitor arrives at page 1 again, so the
   // hint reappears on every visit rather than only the very first time.
   if (currentPage !== prevPageForTutorial) {
@@ -258,6 +262,9 @@ export function useExperienceState() {
       rotateClockwise,
       openMessage,
       closeMessage,
+      show3DViewer,
+      open3DViewer,
+      close3DViewer,
       resumeContinue,
       resumeRestart,
       restartFromCompletion,
@@ -290,6 +297,9 @@ export function useExperienceState() {
       rotateClockwise,
       openMessage,
       closeMessage,
+      show3DViewer,
+      open3DViewer,
+      close3DViewer,
       resumeContinue,
       resumeRestart,
       restartFromCompletion,

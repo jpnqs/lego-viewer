@@ -22,6 +22,11 @@ export const experienceConfig: ExperienceConfig = {
     file: "/instructions.pdf",
   },
 
+  model: {
+    objFile: "/models/hochzeit_v2.obj",
+    mtlFile: "/models/hochzeit_v2.mtl",
+  },
+
   completion: {
     heading: "Geschafft!",
     lines: [

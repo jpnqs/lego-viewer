@@ -11,9 +11,17 @@ import { MessageModal } from "@/components/messages/MessageModal";
 import { MessageIndicator } from "@/components/messages/MessageIndicator";
 import { AutoOpenToast } from "@/components/messages/AutoOpenToast";
 import { TutorialHint } from "@/components/messages/TutorialHint";
+import { ModelIndicator } from "@/components/model-viewer/ModelIndicator";
 import { CompletionScreen } from "@/components/completion/CompletionScreen";
 import { ResumePrompt } from "@/components/ui/ResumePrompt";
 import { Loader } from "@/components/ui/Loader";
+
+// three.js touches WebGL/canvas globals at module-evaluation time — like
+// react-pdf, it must never be part of the server bundle.
+const ModelViewerModal = dynamic(
+  () => import("@/components/model-viewer/ModelViewerModal").then((m) => m.ModelViewerModal),
+  { ssr: false },
+);
 
 // react-pdf pulls in pdfjs-dist, which touches browser-only globals (DOMMatrix)
 // at module-evaluation time — it must never be part of the server bundle.
@@ -104,6 +112,7 @@ export function ExperienceRoot() {
         {showChrome && !pageHasMessage(state.currentPage) && (
           <TutorialHint visible={state.showTutorialHint} onDismiss={state.dismissTutorialHint} />
         )}
+        {showChrome && <ModelIndicator onClick={state.open3DViewer} />}
       </div>
 
       {showChrome && state.totalPages !== null && (
@@ -117,6 +126,12 @@ export function ExperienceRoot() {
       )}
 
       <MessageModal message={currentMessage} onClose={state.closeMessage} />
+      <ModelViewerModal
+        open={state.show3DViewer}
+        onClose={state.close3DViewer}
+        objFile={experienceConfig.model.objFile}
+        mtlFile={experienceConfig.model.mtlFile}
+      />
     </div>
   );
 }

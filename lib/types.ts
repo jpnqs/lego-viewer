@@ -35,6 +35,10 @@ export interface ExperienceConfig {
   pdf: {
     file: string;
   };
+  model: {
+    objFile: string;
+    mtlFile: string;
+  };
   completion: {
     heading: string;
     lines: string[];
