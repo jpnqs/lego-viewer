@@ -56,8 +56,9 @@ export function ModelViewerStage({ objFile, mtlFile }: ModelViewerStageProps) {
       <Suspense fallback={<Loader label="Das Modell wird geladen …" />}>
         {/* Camera direction (not distance) sets the initial viewing angle — Bounds only moves it closer/farther along this line; target is recomputed to the bounding-box center regardless. */}
         <Canvas camera={{ position: [497.18, 444.93, -853.36], fov: 45 }}>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[5, 8, 5]} intensity={1.2} />
+          <ambientLight intensity={1.4} />
+          <directionalLight position={[5, 8, 5]} intensity={2.2} />
+          <directionalLight position={[-5, 4, -5]} intensity={1} />
           {/* Self-hosted so the viewer never depends on drei's default GitHub-hosted preset CDN. */}
           <Environment files="/hdri/studio_small_03_1k.hdr" />
           <LoadedModel objFile={objFile} mtlFile={mtlFile} />
