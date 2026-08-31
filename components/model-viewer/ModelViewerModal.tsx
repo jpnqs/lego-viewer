@@ -105,7 +105,13 @@ export function ModelViewerModal({
             <div className="relative min-h-0 flex-1 px-2 pb-2 sm:px-4 sm:pb-4">
               {/* Only ever rendered while this specific modal is open, and
                   never alongside the other model view's modal/Canvas. */}
-              {open && <ModelViewerStage objFile={objFile} mtlFile={mtlFile} />}
+              {open && (
+                <ModelViewerStage
+                  key={`${objFile}|${mtlFile}`}
+                  objFile={objFile}
+                  mtlFile={mtlFile}
+                />
+              )}
             </div>
           </motion.div>
         </div>
