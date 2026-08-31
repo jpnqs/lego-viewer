@@ -14,6 +14,7 @@ import { MessageIndicator } from "@/components/messages/MessageIndicator";
 import { AutoOpenToast } from "@/components/messages/AutoOpenToast";
 import { TutorialHint } from "@/components/messages/TutorialHint";
 import { ModelIndicator } from "@/components/model-viewer/ModelIndicator";
+import type { ModelTab } from "@/components/model-viewer/ModelTabs";
 import { CompletionScreen } from "@/components/completion/CompletionScreen";
 import { ResumePrompt } from "@/components/ui/ResumePrompt";
 import { Loader } from "@/components/ui/Loader";
@@ -48,13 +49,14 @@ const PdfViewer = dynamic(
 
 export function ExperienceRoot() {
   const state = useExperienceState();
-  const [preloadModel, setPreloadModel] = useState(false);
+  const [warmFullModel, setWarmFullModel] = useState(false);
 
-  // Warm the 3D model's loader cache once while the visitor is busy reading
-  // instructions, so opening the viewer later doesn't wait on a 36MB fetch/parse.
+  // The finished model is a 36MB fetch and parse, so it waits for idle time
+  // rather than competing with the instructions. Sub-models are small enough
+  // to warm straight away.
   useEffect(() => {
     if (state.viewState !== "active") return;
-    return scheduleIdle(() => setPreloadModel(true));
+    return scheduleIdle(() => setWarmFullModel(true));
   }, [state.viewState]);
 
   useEffect(() => {
@@ -64,6 +66,9 @@ export function ExperienceRoot() {
       const target = e.target as HTMLElement | null;
       if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
       if (state.isCompleted) return;
+      // An open modal owns the arrow keys — the 3D viewer uses them to move
+      // between its tabs.
+      if (state.modelView !== null || state.openMessagePage !== null) return;
 
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -102,6 +107,31 @@ export function ExperienceRoot() {
       : null;
   const currentSubModel = getSubModelForPage(state.currentPage);
   const showChrome = state.totalPages !== null && !state.loadError;
+
+  // The sub-model comes first: on a page that has one, it is what the visitor
+  // is building right now, and the finished model is the reference behind it.
+  const modelTabs: ModelTab[] = [
+    ...(currentSubModel
+      ? [
+          {
+            id: "sub",
+            label: currentSubModel.label ?? "Dieser Bauabschnitt",
+            objFile: currentSubModel.objFile,
+            mtlFile: currentSubModel.mtlFile,
+          },
+        ]
+      : []),
+    {
+      id: "full",
+      label: "Das fertige Modell",
+      objFile: experienceConfig.model.objFile,
+      mtlFile: experienceConfig.model.mtlFile,
+    },
+  ];
+
+  // Turning a page can drop the "sub" tab out from under an open viewer.
+  const activeModelTab =
+    modelTabs.find((t) => t.id === state.modelView)?.id ?? modelTabs[0].id;
 
   return (
     <div className="flex h-screen-safe w-full flex-col overflow-hidden bg-cream-50">
@@ -146,7 +176,7 @@ export function ExperienceRoot() {
         {showChrome && (
           <ModelIndicator
             onClick={() =>
-              state.openModelViewer(currentSubModel ? "sub" : "full")
+              state.showModelView(currentSubModel ? "sub" : "full")
             }
             modelCount={currentSubModel ? 2 : 1}
           />
@@ -164,48 +194,29 @@ export function ExperienceRoot() {
       )}
 
       <MessageModal message={currentMessage} onClose={state.closeMessage} />
-      {/* Two fully independent modals — never open at the same time, each
-          owning its own <Canvas>/WebGL context for its whole open lifetime. */}
-      {currentSubModel && (
-        <ModelViewerModal
-          open={state.modelView === "sub"}
-          onClose={state.closeModelViewer}
-          objFile={currentSubModel.objFile}
-          mtlFile={currentSubModel.mtlFile}
-          title={currentSubModel.label ?? "Dieser Bauabschnitt"}
-          switchAction={{
-            label: "Gesamtmodell ansehen",
-            onClick: () => state.switchModelView("full"),
-          }}
-        />
-      )}
+
+      {/* One viewer for every 3D view on this page. It keeps a single
+          <Canvas> alive and swaps the model between tabs, so switching never
+          recreates the WebGL context. */}
       <ModelViewerModal
-        open={state.modelView === "full"}
+        open={state.modelView !== null}
         onClose={state.closeModelViewer}
-        objFile={experienceConfig.model.objFile}
-        mtlFile={experienceConfig.model.mtlFile}
-        title="Das fertige Modell"
-        switchAction={
-          currentSubModel
-            ? {
-                label: currentSubModel.label ?? "Dieser Bauabschnitt",
-                onClick: () => state.switchModelView("sub"),
-              }
-            : undefined
-        }
+        tabs={modelTabs}
+        activeId={activeModelTab}
+        onSelect={(id) => state.showModelView(id as "sub" | "full")}
       />
-      {preloadModel && (
-        <ModelPreloader
-          objFile={experienceConfig.model.objFile}
-          mtlFile={experienceConfig.model.mtlFile}
-        />
-      )}
-      {currentSubModel && (
-        <ModelPreloader
-          objFile={currentSubModel.objFile}
-          mtlFile={currentSubModel.mtlFile}
-        />
-      )}
+
+      {/* Warm every tab, not just the one that opens first, so switching is
+          instant rather than a fetch-and-parse away. */}
+      {modelTabs
+        .filter((tab) => tab.id !== "full" || warmFullModel)
+        .map((tab) => (
+          <ModelPreloader
+            key={tab.id}
+            objFile={tab.objFile}
+            mtlFile={tab.mtlFile}
+          />
+        ))}
     </div>
   );
 }

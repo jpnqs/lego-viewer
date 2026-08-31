@@ -3,29 +3,23 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ModelViewerStage } from "@/components/model-viewer/ModelViewerStage";
+import { ModelTabs, type ModelTab } from "@/components/model-viewer/ModelTabs";
 
 interface ModelViewerModalProps {
   open: boolean;
   onClose: () => void;
-  objFile: string;
-  mtlFile: string;
-  title: string;
-  /** Optional CTA to jump to the other model view (e.g. sub-model <-> full
-   * model). This modal has no knowledge of what that other view is — the
-   * parent decides, so the two views stay fully independent of each other. */
-  switchAction?: {
-    label: string;
-    onClick: () => void;
-  };
+  /** One entry per 3D view available here; the first is the default. */
+  tabs: ModelTab[];
+  activeId: string;
+  onSelect: (id: string) => void;
 }
 
 export function ModelViewerModal({
   open,
   onClose,
-  objFile,
-  mtlFile,
-  title,
-  switchAction,
+  tabs,
+  activeId,
+  onSelect,
 }: ModelViewerModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
@@ -48,9 +42,11 @@ export function ModelViewerModal({
     };
   }, [open, onClose]);
 
+  const active = tabs.find((t) => t.id === activeId) ?? tabs[0];
+
   return (
     <AnimatePresence>
-      {open && (
+      {open && active && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
           <motion.div
             className="absolute inset-0 bg-anthracite-900/50 backdrop-blur-sm"
@@ -65,7 +61,7 @@ export function ModelViewerModal({
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="model-viewer-modal-title"
+            aria-label="Das Modell in 3D"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
@@ -74,44 +70,34 @@ export function ModelViewerModal({
           >
             <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-anthracite-900/15 sm:hidden" />
 
-            <div className="flex items-center justify-between px-6 pt-4 sm:px-8 sm:pt-6">
-              <h2
-                id="model-viewer-modal-title"
-                className="font-serif text-2xl text-anthracite-900 sm:text-3xl"
-              >
-                {title}
-              </h2>
+            <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
+              {/* A single view needs no tab bar — it just gets a title. */}
+              {tabs.length > 1 ? (
+                <ModelTabs tabs={tabs} activeId={active.id} onSelect={onSelect} />
+              ) : (
+                <h2 className="truncate font-serif text-2xl text-anthracite-900 sm:text-3xl">
+                  {active.label}
+                </h2>
+              )}
               <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
                 aria-label="Schließen"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-anthracite-700 transition-colors hover:bg-anthracite-900/5"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-anthracite-700 transition-colors hover:bg-anthracite-900/5"
               >
                 <CloseIcon />
               </button>
             </div>
 
-            {switchAction && (
-              <button
-                type="button"
-                onClick={switchAction.onClick}
-                className="mx-6 mt-2 self-start text-sm font-medium text-anthracite-700 underline decoration-anthracite-700/30 underline-offset-4 transition-colors hover:text-anthracite-900 sm:mx-8"
-              >
-                {switchAction.label} →
-              </button>
-            )}
-
             <div className="relative min-h-0 flex-1 px-2 pb-2 sm:px-4 sm:pb-4">
-              {/* Only ever rendered while this specific modal is open, and
-                  never alongside the other model view's modal/Canvas. */}
-              {open && (
-                <ModelViewerStage
-                  key={`${objFile}|${mtlFile}`}
-                  objFile={objFile}
-                  mtlFile={mtlFile}
-                />
-              )}
+              {/* Deliberately not keyed on the active tab: one <Canvas> stays
+                  mounted for the whole visit and the model is swapped inside
+                  it, so switching tabs never recreates the WebGL context. */}
+              <ModelViewerStage
+                objFile={active.objFile}
+                mtlFile={active.mtlFile}
+              />
             </div>
           </motion.div>
         </div>

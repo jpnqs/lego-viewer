@@ -15,7 +15,9 @@ export function ModelIndicator({ onClick, modelCount = 1 }: ModelIndicatorProps)
       <motion.button
         type="button"
         onClick={onClick}
-        aria-label="Fertiges Modell in 3D ansehen"
+        aria-label={
+          modelCount > 1 ? "Modelle in 3D ansehen" : "Fertiges Modell in 3D ansehen"
+        }
         className="pointer-events-auto relative flex h-14 w-14 items-center justify-center rounded-full border border-anthracite-900/15 bg-cream-50/95 text-anthracite-700 shadow-lg shadow-anthracite-900/10 backdrop-blur transition-colors hover:bg-cream-100"
         whileTap={{ scale: 0.92 }}
       >

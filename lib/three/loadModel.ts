@@ -16,6 +16,15 @@ interface ModelRecord {
   promise: Promise<void>;
   model?: Group;
   error?: Error;
+  /** Notified once when the load settles, so React can re-read the snapshot. */
+  listeners: Set<() => void>;
+}
+
+/** What a caller sees when it reads the cache. "idle" = not requested yet. */
+export interface ModelSnapshot {
+  status: "idle" | "pending" | "resolved" | "rejected";
+  model?: Group;
+  error?: Error;
 }
 
 const records = new Map<string, ModelRecord>();
@@ -85,18 +94,26 @@ function getRecord(objFile: string, mtlFile: string): ModelRecord {
   const existing = records.get(key);
   if (existing) return existing;
 
+  const settle = () => {
+    for (const listener of record.listeners) listener();
+    record.listeners.clear();
+  };
+
   const record: ModelRecord = {
     status: "pending",
+    listeners: new Set(),
     // Settling both outcomes into the record means this promise itself never
     // rejects, so a background preload can never raise an unhandled rejection.
     promise: loadNormalized(objFile, mtlFile).then(
       (model) => {
         record.status = "resolved";
         record.model = model;
+        settle();
       },
       (cause: unknown) => {
         record.status = "rejected";
         record.error = cause instanceof Error ? cause : new Error(String(cause));
+        settle();
       },
     ),
   };
@@ -106,16 +123,31 @@ function getRecord(objFile: string, mtlFile: string): ModelRecord {
 }
 
 /**
- * Reads a model for rendering, suspending until it is ready.
- *
- * Uses the plain throw-a-thenable protocol rather than React's `use()`, so it
- * behaves identically inside react-three-fiber's reconciler and the DOM one.
+ * Reads the cache without starting anything, so it is safe to call during
+ * render. Nothing here suspends: the viewer keeps one <Canvas> alive for its
+ * whole lifetime and swaps models inside it, and suspending would tear that
+ * Canvas — and its WebGL context — down on every tab switch.
  */
-export function readModel(objFile: string, mtlFile: string): Group {
+export function peekModel(objFile: string, mtlFile: string): ModelSnapshot {
+  const record = records.get(cacheKey(objFile, mtlFile));
+  if (!record) return { status: "idle" };
+  return { status: record.status, model: record.model, error: record.error };
+}
+
+/**
+ * Starts the load if it has not begun, and calls `listener` once it settles.
+ * Returns an unsubscribe.
+ */
+export function watchModel(
+  objFile: string,
+  mtlFile: string,
+  listener: () => void,
+): () => void {
   const record = getRecord(objFile, mtlFile);
-  if (record.status === "resolved") return record.model as Group;
-  if (record.status === "rejected") throw record.error;
-  throw record.promise;
+  if (record.status !== "pending") return () => {};
+
+  record.listeners.add(listener);
+  return () => record.listeners.delete(listener);
 }
 
 /** Starts a load in the background without suspending or throwing. */

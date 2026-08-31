@@ -7,7 +7,6 @@ import {
   DEFAULT_ZOOM,
   MAX_ZOOM,
   MIN_ZOOM,
-  MODEL_VIEW_SWITCH_DELAY_MS,
   ZOOM_STEP,
 } from "@/config/experience";
 import { clearProgress, loadProgress, saveProgress } from "@/lib/storage";
@@ -44,9 +43,6 @@ export function useExperienceState() {
   const [modelView, setModelView] = useState<ModelView>(null);
 
   const hasHydrated = useRef(false);
-  const modelViewSwitchTimeout = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
 
   // Resolve initial view state once, client-side only (localStorage + URL).
   // localStorage/searchParams aren't available at render time, so this
@@ -158,44 +154,14 @@ export function useExperienceState() {
 
   const closeMessage = useCallback(() => setOpenMessagePage(null), []);
 
-  // The sub-model and full-model viewers are two fully independent modals —
-  // each mounts its own <Canvas> (own WebGL context) only while its own
-  // `modelView` value is active, and the two are never both open at once.
-  // Switching between them closes the current one and waits for it to fully
-  // unmount (clearing its WebGL context) before mounting the other, rather
-  // than swapping in the same tick — iOS Safari can otherwise drop the new
-  // context if the old one hasn't been released yet.
-  const openModelViewer = useCallback((view: "sub" | "full") => {
-    if (modelViewSwitchTimeout.current) {
-      clearTimeout(modelViewSwitchTimeout.current);
-      modelViewSwitchTimeout.current = null;
-    }
+  // The viewer is a single modal with one <Canvas>; `modelView` doubles as
+  // "is it open" and "which tab". Switching is therefore an ordinary state
+  // change — there is no second WebGL context to wait for.
+  const showModelView = useCallback((view: "sub" | "full") => {
     setModelView(view);
   }, []);
 
-  const closeModelViewer = useCallback(() => {
-    if (modelViewSwitchTimeout.current) {
-      clearTimeout(modelViewSwitchTimeout.current);
-      modelViewSwitchTimeout.current = null;
-    }
-    setModelView(null);
-  }, []);
-
-  const switchModelView = useCallback((view: "sub" | "full") => {
-    setModelView(null);
-    modelViewSwitchTimeout.current = setTimeout(() => {
-      setModelView(view);
-      modelViewSwitchTimeout.current = null;
-    }, MODEL_VIEW_SWITCH_DELAY_MS);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (modelViewSwitchTimeout.current) {
-        clearTimeout(modelViewSwitchTimeout.current);
-      }
-    };
-  }, []);
+  const closeModelViewer = useCallback(() => setModelView(null), []);
 
   // Reset the dismissal whenever the visitor arrives at page 1 again, so the
   // hint reappears on every visit rather than only the very first time.
@@ -304,9 +270,8 @@ export function useExperienceState() {
       openMessage,
       closeMessage,
       modelView,
-      openModelViewer,
+      showModelView,
       closeModelViewer,
-      switchModelView,
       resumeContinue,
       resumeRestart,
       restartFromCompletion,
@@ -340,9 +305,8 @@ export function useExperienceState() {
       openMessage,
       closeMessage,
       modelView,
-      openModelViewer,
+      showModelView,
       closeModelViewer,
-      switchModelView,
       resumeContinue,
       resumeRestart,
       restartFromCompletion,
