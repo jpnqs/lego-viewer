@@ -125,9 +125,11 @@ export function ModelViewerModal({
             )}
 
             <div className="relative min-h-0 flex-1 px-2 pb-2 sm:px-4 sm:pb-4">
+              {/* No key here: the Canvas (and its WebGL context) must stay
+                  mounted across tab switches. ModelViewerStage keys its
+                  internal mesh instead, so only that remounts. */}
               {open && (
                 <ModelViewerStage
-                  key={activeObjFile}
                   objFile={activeObjFile}
                   mtlFile={activeMtlFile}
                 />
