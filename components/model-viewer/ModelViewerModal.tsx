@@ -1,34 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ModelViewerStage } from "@/components/model-viewer/ModelViewerStage";
-import type { SubModelEntry } from "@/lib/types";
 
 interface ModelViewerModalProps {
   open: boolean;
   onClose: () => void;
   objFile: string;
   mtlFile: string;
-  /** Sub-model for the current PDF page, if configured; adds a tab switcher. */
-  subModel?: SubModelEntry;
+  title: string;
+  /** Optional CTA to jump to the other model view (e.g. sub-model <-> full
+   * model). This modal has no knowledge of what that other view is — the
+   * parent decides, so the two views stay fully independent of each other. */
+  switchAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
-
-type ViewTab = "sub" | "full";
 
 export function ModelViewerModal({
   open,
   onClose,
   objFile,
   mtlFile,
-  subModel,
+  title,
+  switchAction,
 }: ModelViewerModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-  const [activeTab, setActiveTab] = useState<ViewTab>(
-    subModel ? "sub" : "full",
-  );
 
   // Unlike MessageModal, this is a casual viewer: backdrop click and Escape
   // both dismiss it, in addition to the explicit close button.
@@ -36,9 +36,6 @@ export function ModelViewerModal({
     if (!open) return;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     closeButtonRef.current?.focus();
-    // Default to the sub-model tab so builders see the current step first,
-    // resetting each time the modal is reopened (possibly for a new page).
-    setActiveTab(subModel ? "sub" : "full");
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -49,15 +46,7 @@ export function ModelViewerModal({
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused.current?.focus?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onClose]);
-
-  const showingSub = activeTab === "sub" && !!subModel;
-  const activeObjFile = showingSub ? subModel!.objFile : objFile;
-  const activeMtlFile = showingSub ? subModel!.mtlFile : mtlFile;
-  const title = showingSub
-    ? (subModel!.label ?? "Dieser Bauabschnitt")
-    : "Das fertige Modell";
 
   return (
     <AnimatePresence>
@@ -103,68 +92,25 @@ export function ModelViewerModal({
               </button>
             </div>
 
-            {subModel && (
-              <div
-                role="tablist"
-                aria-label="Modellansicht wählen"
-                className="mx-6 mt-3 flex gap-1 rounded-full bg-anthracite-900/5 p-1 sm:mx-8"
+            {switchAction && (
+              <button
+                type="button"
+                onClick={switchAction.onClick}
+                className="mx-6 mt-2 self-start text-sm font-medium text-anthracite-700 underline decoration-anthracite-700/30 underline-offset-4 transition-colors hover:text-anthracite-900 sm:mx-8"
               >
-                <TabButton
-                  active={activeTab === "sub"}
-                  onClick={() => setActiveTab("sub")}
-                >
-                  {subModel.label ?? "Dieser Bauabschnitt"}
-                </TabButton>
-                <TabButton
-                  active={activeTab === "full"}
-                  onClick={() => setActiveTab("full")}
-                >
-                  Gesamtmodell
-                </TabButton>
-              </div>
+                {switchAction.label} →
+              </button>
             )}
 
             <div className="relative min-h-0 flex-1 px-2 pb-2 sm:px-4 sm:pb-4">
-              {/* No key here: the Canvas (and its WebGL context) must stay
-                  mounted across tab switches. ModelViewerStage keys its
-                  internal mesh instead, so only that remounts. */}
-              {open && (
-                <ModelViewerStage
-                  objFile={activeObjFile}
-                  mtlFile={activeMtlFile}
-                />
-              )}
+              {/* Only ever rendered while this specific modal is open, and
+                  never alongside the other model view's modal/Canvas. */}
+              {open && <ModelViewerStage objFile={objFile} mtlFile={mtlFile} />}
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      className={`flex-1 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-        active
-          ? "bg-cream-50 text-anthracite-900 shadow-sm"
-          : "text-anthracite-700 hover:text-anthracite-900"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 

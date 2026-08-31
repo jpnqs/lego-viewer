@@ -145,7 +145,9 @@ export function ExperienceRoot() {
         )}
         {showChrome && (
           <ModelIndicator
-            onClick={state.open3DViewer}
+            onClick={() =>
+              state.openModelViewer(currentSubModel ? "sub" : "full")
+            }
             modelCount={currentSubModel ? 2 : 1}
           />
         )}
@@ -162,12 +164,35 @@ export function ExperienceRoot() {
       )}
 
       <MessageModal message={currentMessage} onClose={state.closeMessage} />
+      {/* Two fully independent modals — never open at the same time, each
+          owning its own <Canvas>/WebGL context for its whole open lifetime. */}
+      {currentSubModel && (
+        <ModelViewerModal
+          open={state.modelView === "sub"}
+          onClose={state.closeModelViewer}
+          objFile={currentSubModel.objFile}
+          mtlFile={currentSubModel.mtlFile}
+          title={currentSubModel.label ?? "Dieser Bauabschnitt"}
+          switchAction={{
+            label: "Gesamtmodell ansehen",
+            onClick: () => state.switchModelView("full"),
+          }}
+        />
+      )}
       <ModelViewerModal
-        open={state.show3DViewer}
-        onClose={state.close3DViewer}
+        open={state.modelView === "full"}
+        onClose={state.closeModelViewer}
         objFile={experienceConfig.model.objFile}
         mtlFile={experienceConfig.model.mtlFile}
-        subModel={currentSubModel}
+        title="Das fertige Modell"
+        switchAction={
+          currentSubModel
+            ? {
+                label: currentSubModel.label ?? "Dieser Bauabschnitt",
+                onClick: () => state.switchModelView("sub"),
+              }
+            : undefined
+        }
       />
       {preloadModel && (
         <ModelPreloader

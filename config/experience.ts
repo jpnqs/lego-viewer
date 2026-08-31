@@ -106,4 +106,7 @@ export const MIN_ZOOM = 0.6;
 export const MAX_ZOOM = 2.5;
 export const DEFAULT_ZOOM = 1;
 export const ZOOM_STEP = 0.2;
+// Gap between fully closing one 3D viewer modal and opening the other, so
+// the first Canvas's WebGL context is released before the next one mounts.
+export const MODEL_VIEW_SWITCH_DELAY_MS = 400;
 export const PDF_WORKER_SRC = "/pdf.worker.min.mjs";

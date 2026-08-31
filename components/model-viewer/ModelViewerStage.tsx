@@ -61,11 +61,7 @@ export function ModelViewerStage({ objFile, mtlFile }: ModelViewerStageProps) {
           <directionalLight position={[-5, 4, -5]} intensity={1} />
           {/* Self-hosted so the viewer never depends on drei's default GitHub-hosted preset CDN. */}
           <Environment files="/hdri/studio_small_03_1k.hdr" />
-          {/* Keyed so switching models (e.g. sub-model <-> full model tabs)
-              remounts just the mesh/Bounds fit, not the surrounding Canvas —
-              recreating the Canvas would tear down and rebuild the WebGL
-              context, which iOS Safari can drop under "too many contexts". */}
-          <LoadedModel key={objFile} objFile={objFile} mtlFile={mtlFile} />
+          <LoadedModel objFile={objFile} mtlFile={mtlFile} />
           <OrbitControls
             makeDefault
             minDistance={1}
