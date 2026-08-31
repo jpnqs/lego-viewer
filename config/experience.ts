@@ -1,4 +1,37 @@
-import type { ExperienceConfig } from "@/lib/types";
+import type { ExperienceConfig, SubModelEntry } from "@/lib/types";
+
+// Which sub-assembly each instruction page is about, read off the PDF itself.
+// The landscape base runs to step 55 (page 30); from step 56 the tree is built
+// as its own sub-model, and its seven leaf branches are each assembled on their
+// own before being clipped onto the trunk. Ranges are inclusive page numbers.
+const subModelRanges: Array<{
+  pages: [from: number, to: number];
+  /** Basename under /public/models — the .obj and .mtl share it. */
+  file: string;
+  label: string;
+}> = [
+    { pages: [31, 39], file: "tree", label: "Baum" }, // Stamm, Schritte 56-68
+    { pages: [40, 40], file: "leave-1", label: "Zweig 1" }, // Schritt 69
+    { pages: [41, 41], file: "leave-2", label: "Zweig 2" }, // Schritt 70
+    { pages: [42, 42], file: "leave-3", label: "Zweig 3" }, // Schritte 71-72
+    { pages: [43, 43], file: "leave-4", label: "Zweig 4" }, // Schritt 74
+    { pages: [44, 44], file: "tree", label: "Baum" }, // Schritte 75-76
+    { pages: [45, 47], file: "big-leave-1", label: "Blütenzweig 1" }, // Schritte 77-80
+    { pages: [48, 49], file: "big-leave-2", label: "Blütenzweig 2" }, // Schritte 82-83
+    { pages: [50, 51], file: "tree", label: "Baum" }, // Schritte 84-86
+    { pages: [52, 54], file: "big-leave-3", label: "Blütenzweig 3" }, // Schritte 88-91
+    { pages: [55, 55], file: "tree", label: "Baum" }, // Schritte 92-93
+  ];
+
+const subModels: SubModelEntry[] = subModelRanges.flatMap(
+  ({ pages: [from, to], file, label }) =>
+    Array.from({ length: to - from + 1 }, (_, i) => ({
+      page: from + i,
+      objFile: `/models/${file}.obj`,
+      mtlFile: `/models/${file}.mtl`,
+      label,
+    })),
+);
 
 export const experienceConfig: ExperienceConfig = {
   couple: {
@@ -27,32 +60,7 @@ export const experienceConfig: ExperienceConfig = {
     mtlFile: "/models/hochzeit_v2.mtl",
   },
 
-  // Optional: on a given PDF page, show a sub-model tab next to the full
-  // model in the 3D viewer — e.g. the sub-assembly being built on that page.
-  // Example:
-  // subModels: [
-  //   { page: 7, objFile: "/models/sub_dach.obj", mtlFile: "/models/sub_dach.mtl", label: "Das Dach" },
-  // ],
-  subModels: [
-    {
-      page: 3,
-      objFile: "/models/demo_cube.obj",
-      mtlFile: "/models/demo_cube.mtl",
-      label: "Demo-Würfel",
-    },
-    {
-      page: 4,
-      objFile: "/models/demo_cube.obj",
-      mtlFile: "/models/demo_cube.mtl",
-      label: "Demo-Würfel",
-    },
-    {
-      page: 5,
-      objFile: "/models/demo_cube.obj",
-      mtlFile: "/models/demo_cube.mtl",
-      label: "Demo-Würfel",
-    },
-  ],
+  subModels,
 
   completion: {
     heading: "Geschafft!",
