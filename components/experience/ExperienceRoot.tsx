@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { experienceConfig } from "@/config/experience";
 import { useExperienceState } from "@/lib/hooks/useExperienceState";
 import { getMessageForPage, pageHasMessage } from "@/lib/messages";
+import { getSubModelForPage } from "@/lib/subModels";
 import { scheduleIdle } from "@/lib/scheduleIdle";
 import { TopToolbar } from "@/components/navigation/TopToolbar";
 import { BottomNav } from "@/components/navigation/BottomNav";
@@ -99,6 +100,7 @@ export function ExperienceRoot() {
     state.openMessagePage !== null
       ? (getMessageForPage(state.openMessagePage) ?? null)
       : null;
+  const currentSubModel = getSubModelForPage(state.currentPage);
   const showChrome = state.totalPages !== null && !state.loadError;
 
   return (
@@ -141,7 +143,12 @@ export function ExperienceRoot() {
             onDismiss={state.dismissTutorialHint}
           />
         )}
-        {showChrome && <ModelIndicator onClick={state.open3DViewer} />}
+        {showChrome && (
+          <ModelIndicator
+            onClick={state.open3DViewer}
+            modelCount={currentSubModel ? 2 : 1}
+          />
+        )}
       </div>
 
       {showChrome && state.totalPages !== null && (
@@ -160,11 +167,18 @@ export function ExperienceRoot() {
         onClose={state.close3DViewer}
         objFile={experienceConfig.model.objFile}
         mtlFile={experienceConfig.model.mtlFile}
+        subModel={currentSubModel}
       />
       {preloadModel && (
         <ModelPreloader
           objFile={experienceConfig.model.objFile}
           mtlFile={experienceConfig.model.mtlFile}
+        />
+      )}
+      {currentSubModel && (
+        <ModelPreloader
+          objFile={currentSubModel.objFile}
+          mtlFile={currentSubModel.mtlFile}
         />
       )}
     </div>

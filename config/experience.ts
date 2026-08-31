@@ -27,6 +27,33 @@ export const experienceConfig: ExperienceConfig = {
     mtlFile: "/models/hochzeit_v2.mtl",
   },
 
+  // Optional: on a given PDF page, show a sub-model tab next to the full
+  // model in the 3D viewer — e.g. the sub-assembly being built on that page.
+  // Example:
+  // subModels: [
+  //   { page: 7, objFile: "/models/sub_dach.obj", mtlFile: "/models/sub_dach.mtl", label: "Das Dach" },
+  // ],
+  subModels: [
+    {
+      page: 3,
+      objFile: "/models/demo_cube.obj",
+      mtlFile: "/models/demo_cube.mtl",
+      label: "Demo-Würfel",
+    },
+    {
+      page: 4,
+      objFile: "/models/demo_cube.obj",
+      mtlFile: "/models/demo_cube.mtl",
+      label: "Demo-Würfel",
+    },
+    {
+      page: 5,
+      objFile: "/models/demo_cube.obj",
+      mtlFile: "/models/demo_cube.mtl",
+      label: "Demo-Würfel",
+    },
+  ],
+
   completion: {
     heading: "Geschafft!",
     lines: [

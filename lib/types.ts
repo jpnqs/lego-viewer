@@ -17,6 +17,15 @@ export interface ExperienceMessage {
   autoOpen?: boolean;
 }
 
+export interface SubModelEntry {
+  /** PDF page number this sub-model applies to (1-indexed). */
+  page: number;
+  objFile: string;
+  mtlFile: string;
+  /** Tab label shown in the viewer; defaults to "Dieser Bauabschnitt". */
+  label?: string;
+}
+
 export interface ExperienceConfig {
   couple: {
     name1: string;
@@ -39,6 +48,8 @@ export interface ExperienceConfig {
     objFile: string;
     mtlFile: string;
   };
+  /** Per-page sub-model shown alongside the full model in the 3D viewer. */
+  subModels?: SubModelEntry[];
   completion: {
     heading: string;
     lines: string[];
