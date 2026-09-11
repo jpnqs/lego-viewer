@@ -44,8 +44,8 @@ export const experienceConfig: ExperienceConfig = {
   },
 
   intro: {
-    title: "Für Milena & Hannes",
-    quote: "Stein für Stein. Schritt für Schritt. Ein Leben lang zusammen.",
+    title: "Für das sweete Brautpaar!",
+    quote: "Steinchen für Steinchen. ",
     description: "Ein kleines Geschenk für euren großen gemeinsamen Weg.",
     date: undefined,
     cta: "Gemeinsam losbauen",
@@ -65,9 +65,9 @@ export const experienceConfig: ExperienceConfig = {
   completion: {
     heading: "Geschafft!",
     lines: [
-      "Ihr habt es gemeinsam gebaut.",
-      "Eine gemeinsame Zukunft entsteht nicht auf einmal. Sie entsteht Stein für Stein.",
-      "Alles Liebe für euren gemeinsamen Weg.",
+      "Genauso wie ihr im Set den Weg gebaut habt.",
+      "Werdet ihr auch eure gemeinsame Zukunft Stein für Stein bauen.",
+      "Ich wünsch euch alles alles liebe für eure gemeinsame Zukunft!",
     ],
     signature: "Jonas",
     restartLabel: "Noch einmal von vorne",
@@ -76,34 +76,44 @@ export const experienceConfig: ExperienceConfig = {
   tutorialHint:
     "Auf manchen Seiten warten Nachrichten auf euch. Ihr erkennt sie am pulsierenden Herz!",
 
+  // Jedes Beutelchen startet einen neuen Bauabschnitt. Die Hinweise öffnen
+  // sich automatisch, damit niemand versehentlich ohne die richtigen Steine
+  // weiterbaut. Schema siehe ExperienceMessage in lib/types.ts.
   messages: [
     {
-      page: 3,
-      type: "letter",
-      title: "Eine Nachricht von Jonas",
-      text: "Liebe Milena, lieber Hannes,\n\nich wollte euch nicht einfach nur etwas schenken, sondern euch etwas geben, das ihr gemeinsam bauen könnt.\n\nIch hoffe, dass euch dieses kleine Set immer daran erinnert, dass die schönsten Dinge entstehen, wenn man sie gemeinsam Stein für Stein aufbaut.\n\nAlles Liebe für euch beide!",
-      autoOpen: true,
-    },
-    {
-      page: 4,
-      type: "surprise",
-      title: 'Surprise',
-      text: 'test'
-    },
-    {
-      page: 12,
+      page: 1,
       type: "short",
-      title: "Kleine Baupause",
-      text: "Kurz durchatmen, euch anlächeln - und weiter geht's.",
+      title: "Beutelchen 1 öffnen",
+      text: "Bevor ihr loslegt: Öffnet Beutelchen 1. Alles für den Anfang steckt da drin.",
       autoOpen: true,
     },
     {
-      page: 18,
-      type: "photo",
-      title: "Ein Blick zurück",
-      text: "Ersetze dieses Bild gern durch ein eigenes Foto von euch beiden.",
-      photoSrc: "/images/example-photo.svg",
-      photoAlt: "Platzhalter-Foto",
+      page: 9,
+      type: "short",
+      title: "Beutelchen 2 öffnen",
+      text: "Beutelchen 1 hat seinen Dienst getan - jetzt darf Beutelchen 2 aufgemacht werden.",
+      autoOpen: true,
+    },
+    {
+      page: 19,
+      type: "short",
+      title: "Beutelchen 3 öffnen",
+      text: "Weiter geht's: Öffnet jetzt Beutelchen 3.",
+      autoOpen: true,
+    },
+    {
+      page: 31,
+      type: "short",
+      title: "Beutelchen 4 öffnen",
+      text: "Zeit für Beutelchen 4 - ab hier wächst der Baum.",
+      autoOpen: true,
+    },
+    {
+      page: 56,
+      type: "short",
+      title: "Beutelchen 5 öffnen",
+      text: "Das letzte: Öffnet Beutelchen 5 und bringt euer Werk zu Ende.",
+      autoOpen: true,
     },
   ],
 };
